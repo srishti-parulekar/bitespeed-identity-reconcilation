@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import pool from "./config/db.js";
 import contactRoutes from "./routes/contactRoutes.js";
+import { errorHandler } from "./middlewares/errorHandler.js";
 
 dotenv.config();
 
@@ -25,6 +26,28 @@ app.get("/", async(req,res) => {
         res.status(500).json({ error: 'Database connection failed' });
     }
 });
+
+// Health check endpoint
+app.get("/health", async (req, res) => {
+    try {
+        await pool.query("SELECT 1");
+        res.status(200).json({ 
+            status: "healthy", 
+            database: "connected",
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        res.status(503).json({ 
+            status: "unhealthy", 
+            database: "disconnected",
+            error: error.message
+        });
+    }
+});
+
+//error handling middleware
+app.use(errorHandler);
+
 
 //server running
 app.listen(port, () => {
