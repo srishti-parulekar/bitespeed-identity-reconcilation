@@ -10,6 +10,8 @@ import { generalLimiter } from './middlewares/rateLimiter.js';
 
 dotenv.config();
 
+let server;
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -56,7 +58,7 @@ app.use(errorHandler);
 const gracefulShutdown = async (signal) => {
   console.log(`\n${signal} received. starting graceful shutdown...`);
   
-  const server = app.listen(PORT);
+  // const server = app.listen(PORT);
   
   server.close(async () => {
     console.log('HTTP server closed.');
@@ -85,26 +87,31 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error);
-  gracefulShutdown('UNCAUGHT_EXCEPTION');
+  // not calling gracefulShutdown here during development
 });
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-  gracefulShutdown('UNHANDLED_REJECTION');
+  // not calling gracefulShutdown here during development
 });
 
 const startServer = async () => {
   try {
+    console.log('Starting server...');
     const { default: prisma } = await import('./config/prisma.js');
+    console.log('Prisma imported successfully');
     await prisma.$connect();
     console.log('database connected successfully :D');
     
-    app.listen(PORT, () => {
+    server = app.listen(PORT, () => {
       console.log(`server running on port ${PORT}`);
       console.log(`environment: ${process.env.NODE_ENV}`);
       console.log(`health check: http://localhost:${PORT}/health`);
       console.log(`identify endpoint: http://localhost:${PORT}/identify`);
     });
+    
+    console.log('Server setup complete');
+    
   } catch (error) {
     console.error('failed to start server:', error);
     process.exit(1);
