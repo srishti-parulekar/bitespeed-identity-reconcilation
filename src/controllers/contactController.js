@@ -69,7 +69,7 @@ class ContactController {
         identify: 'POST /identify',
         health: 'GET /health'
       },
-      documentation: 'https://github.com/yourusername/bitespeed-backend-task'
+      documentation: 'https://github.com/srishti-parulekar/bitespeed-identity-reconcilation'
     });
   }
 }
